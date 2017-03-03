@@ -25,7 +25,7 @@ void finish_with_error(MYSQL *con)
   exit(1);        
 }
 
-static void
+static int
 print_stmt_error (MYSQL_STMT *stmt, char *message)
 {
         fprintf (stdout, "%s\n", message);
@@ -35,10 +35,12 @@ print_stmt_error (MYSQL_STMT *stmt, char *message)
                                 mysql_stmt_errno (stmt),
                                 mysql_stmt_sqlstate (stmt),
                                 mysql_stmt_error (stmt));
+                return mysql_stmt_errno (stmt);
         }
+        return 0;
 }
 
-#define NACCOUNTS 10
+#define NACCOUNTS 100
 int main(int argc, char **argv)
 {
 
@@ -160,7 +162,9 @@ int main(int argc, char **argv)
   int fromBalance;
   int toBalance;
 
-  for  (i=0;i<100000;i++){
+  int errcode;
+
+  for  (i=0;i<1000000;i++){
 
           // handle fromAccount
           mysql_query(con, "BEGIN");
@@ -170,8 +174,9 @@ int main(int argc, char **argv)
           selId = fromAccnt;
 
           if (mysql_stmt_execute(stmt) != 0) {
-                  print_stmt_error(stmt, "Could not execute statement");
-                  return;
+                  errcode = print_stmt_error(stmt, "Could not execute SELECT1");
+                  if (errcode=1317) mysql_rollback(con);
+                  continue;
           }
 
           if (mysql_stmt_store_result(stmt) != 0) {
@@ -180,7 +185,6 @@ int main(int argc, char **argv)
           }
 
           if(mysql_stmt_fetch (stmt) == 0){
-                  printf("Got: %d\n",selBalance);
                   fromBalance = selBalance;
           }
           mysql_stmt_free_result(stmt);
@@ -194,7 +198,8 @@ int main(int argc, char **argv)
           selId = toAccnt;
 
           if (mysql_stmt_execute(stmt) != 0) {
-                  print_stmt_error(stmt, "Could not execute SELECT");
+                  errcode = print_stmt_error(stmt, "Could not execute SELECT2");
+                  if (errcode=1317) mysql_rollback(con);
                   continue;
           }
 
@@ -208,9 +213,6 @@ int main(int argc, char **argv)
           }
           mysql_stmt_free_result(stmt);
 
-          printf("Make from account %d, balance %d -> to account %d, balance %d\n",
-                          fromAccnt, fromBalance, toAccnt, toBalance);
-
           // make transfer
           if (fromBalance > 1){
                   int moveAmnt= rand()%(fromBalance/2)+1;
@@ -220,20 +222,26 @@ int main(int argc, char **argv)
                   updId = fromAccnt;
                   updBalance = fromAmnt;
                   if (mysql_stmt_execute(stmtUpdate) != 0) {
-                          print_stmt_error(stmtUpdate, "Could not execute UPDATE1");
+                          errcode = print_stmt_error(stmtUpdate, "Could not execute UPDATE1");
+                          if (errcode=1317) mysql_rollback(con);
                           continue;
                   }
                   updId = toAccnt;
                   updBalance = toAmnt;
                   if (mysql_stmt_execute(stmtUpdate) != 0) {
-                          print_stmt_error(stmtUpdate, "Could not execute UPDATE2");
+                          errcode = print_stmt_error(stmtUpdate, "Could not execute UPDATE2");
+                          if (errcode=1317) mysql_rollback(con);
                           continue;
                   }
                 printf("Update %d from account %d, balance %d -> to account %d, balance %d\n",
                           moveAmnt, fromAccnt, fromBalance, toAccnt, toBalance);
 
           }
-          mysql_commit(con);
+          if (mysql_commit(con)!=0){
+                  fprintf(stdout, "COMMIT err: %s\n", mysql_error(con));
+          }else{
+                  fprintf(stdout, "COMMIT OK\n");
+          }
 
   }
 
