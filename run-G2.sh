@@ -1,3 +1,6 @@
+# create database __percona;
+# create table __b (id int auto_increment primary key, val int);
+# create table __proc (procid int primary key, val int);  
 MYSQL_PWD=test mysql -h127.0.0.1 -uroot -e "TRUNCATE __b" __percona
 MYSQL_PWD=test mysql -h127.0.0.1 -uroot -e "TRUNCATE __proc" __percona
 for i in {1..10}
