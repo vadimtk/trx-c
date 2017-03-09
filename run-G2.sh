@@ -1,6 +1,11 @@
 # create database __percona;
 # create table __b (id int auto_increment primary key, val int);
-# create table __proc (procid int primary key, val int);  
+# create table __proc (procid int primary key, val int); 
+MYSQL_PWD=test mysql -h127.0.0.1 -uroot -e "DROP TABLE IF EXISTS __aux; CREATE TABLE __aux ( id int(11) NOT NULL PRIMARY KEY)" __percona
+#for i in `seq 0 50 100000`
+#do
+#        MYSQL_PWD=test mysql -h127.0.0.1 -uroot -e "INSERT INTO __aux VALUES ($i)" __percona
+#done
 MYSQL_PWD=test mysql -h127.0.0.1 -uroot -e "TRUNCATE __b" __percona
 MYSQL_PWD=test mysql -h127.0.0.1 -uroot -e "TRUNCATE __proc" __percona
 for i in {1..10}
