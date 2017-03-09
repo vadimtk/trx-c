@@ -6,6 +6,8 @@ MYSQL_PWD=test mysql -h127.0.0.1 -uroot -e "DROP TABLE IF EXISTS __aux; CREATE T
 #do
 #        MYSQL_PWD=test mysql -h127.0.0.1 -uroot -e "INSERT INTO __aux VALUES ($i)" __percona
 #done
+# validation SQL select * from (select floor(z/2) a,count(*) cnt from (select distinct floor(__aux.id/50) z from __b,__aux where val>=__aux.id and val<__aux.id+50 limit 1000) t group by a) t2 where t2.cnt > 1;
+
 MYSQL_PWD=test mysql -h127.0.0.1 -uroot -e "TRUNCATE __b" __percona
 MYSQL_PWD=test mysql -h127.0.0.1 -uroot -e "TRUNCATE __proc" __percona
 for i in {1..10}
