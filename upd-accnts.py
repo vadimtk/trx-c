@@ -5,7 +5,7 @@ import random
 import time
 from multiprocessing import Process, Value, Lock, Condition
 
-hosts=['vps121034.vps.ovh.ca','vps121033.vps.ovh.ca']
+hosts=['vps121034','vps121033']
 threads=2
 accounts=4
 
