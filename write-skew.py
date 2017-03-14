@@ -3,7 +3,7 @@ from mysql.connector import errorcode
 import sys
 from multiprocessing import Process
 
-hosts=['vps121034.vps.ovh.ca','vps121033.vps.ovh.ca']
+hosts=['vps121034','vps121033']
 threads=2
 
 def worker(myid):
